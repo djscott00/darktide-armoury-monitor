@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32106.194
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Darktide_Armoury_Monitor", "Darktide_Armoury_Monitor.csproj", "{E599AFF8-ED8E-4271-A2B0-E703B01C4195}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E599AFF8-ED8E-4271-A2B0-E703B01C4195}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E599AFF8-ED8E-4271-A2B0-E703B01C4195}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E599AFF8-ED8E-4271-A2B0-E703B01C4195}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E599AFF8-ED8E-4271-A2B0-E703B01C4195}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {37341FA9-3FCC-474F-BC5D-5F4DC7A3AA04}
+	EndGlobalSection
+EndGlobal
