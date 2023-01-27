@@ -18,12 +18,13 @@ namespace Darktide_Armoury_Monitor
         public string hashHits;
         public bool notificationPushed;
 
-        public string errorMsg;
+        public string fatalError;
+        public string errorLogSnag;
         public string nextRunTime;
 
         public Results(ScraperArguments args, 
             int numTotalChecks, int numTotalChecksWithHits, int numTotalHits, int numLastHits,
-            bool notificationPushed, string nextRunTime, string errorMsg = "")
+            bool notificationPushed, string nextRunTime, string fatalError, string errorLogSnag)
         {
             this.numTotalChecks = numTotalChecks;
             this.numTotalChecksWithHits = numTotalChecksWithHits;
@@ -32,7 +33,9 @@ namespace Darktide_Armoury_Monitor
             this.hashHits = "";
             this.notificationPushed = notificationPushed;
             this.nextRunTime = nextRunTime;
-            this.errorMsg = errorMsg;
+
+            this.fatalError = fatalError;
+            this.errorLogSnag = errorLogSnag;
         }
 
     }
