@@ -49,7 +49,7 @@ namespace Darktide_Armoury_Monitor
             // 
             // btn_start
             // 
-            this.btn_start.Location = new System.Drawing.Point(259, 292);
+            this.btn_start.Location = new System.Drawing.Point(259, 301);
             this.btn_start.Name = "btn_start";
             this.btn_start.Size = new System.Drawing.Size(75, 39);
             this.btn_start.TabIndex = 0;
@@ -59,7 +59,7 @@ namespace Darktide_Armoury_Monitor
             // 
             // btn_stop
             // 
-            this.btn_stop.Location = new System.Drawing.Point(380, 292);
+            this.btn_stop.Location = new System.Drawing.Point(380, 301);
             this.btn_stop.Name = "btn_stop";
             this.btn_stop.Size = new System.Drawing.Size(75, 39);
             this.btn_stop.TabIndex = 1;
@@ -83,13 +83,13 @@ namespace Darktide_Armoury_Monitor
             this.txt_results.Multiline = true;
             this.txt_results.Name = "txt_results";
             this.txt_results.ReadOnly = true;
-            this.txt_results.Size = new System.Drawing.Size(556, 107);
+            this.txt_results.Size = new System.Drawing.Size(556, 120);
             this.txt_results.TabIndex = 3;
             // 
             // chk_qcMode
             // 
             this.chk_qcMode.AutoSize = true;
-            this.chk_qcMode.Location = new System.Drawing.Point(110, 250);
+            this.chk_qcMode.Location = new System.Drawing.Point(110, 259);
             this.chk_qcMode.Name = "chk_qcMode";
             this.chk_qcMode.Size = new System.Drawing.Size(71, 17);
             this.chk_qcMode.TabIndex = 4;
@@ -156,7 +156,7 @@ namespace Darktide_Armoury_Monitor
             this.chk_pushToLogSnag.AutoSize = true;
             this.chk_pushToLogSnag.Checked = true;
             this.chk_pushToLogSnag.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chk_pushToLogSnag.Location = new System.Drawing.Point(110, 217);
+            this.chk_pushToLogSnag.Location = new System.Drawing.Point(110, 226);
             this.chk_pushToLogSnag.Name = "chk_pushToLogSnag";
             this.chk_pushToLogSnag.Size = new System.Drawing.Size(169, 17);
             this.chk_pushToLogSnag.TabIndex = 11;
@@ -188,7 +188,7 @@ namespace Darktide_Armoury_Monitor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(717, 357);
+            this.ClientSize = new System.Drawing.Size(717, 371);
             this.Controls.Add(this.lbl_nextRunTime);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.chk_pushToLogSnag);

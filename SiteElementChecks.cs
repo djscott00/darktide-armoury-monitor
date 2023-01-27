@@ -12,12 +12,12 @@ namespace Darktide_Armoury_Monitor
     {
 
 
-        public static bool AtPlatformSignIn(IWebDriver driver, out IWebElement matchedElem)
+        public static bool AtPlatformSignIn(XPathConfig config, IWebDriver driver, out IWebElement matchedElem)
         {
             matchedElem = null;
 
             try {
-                matchedElem = driver.FindElement(By.XPath("//a[@href='/sso/login/steam']"));
+                matchedElem = driver.FindElement(By.XPath(config.platformSignInButton));
                 return true;
             }
             catch {
@@ -26,12 +26,12 @@ namespace Darktide_Armoury_Monitor
 
         }
 
-        public static bool AtSteamSignIn(IWebDriver driver, out IWebElement matchedElem)
+        public static bool AtSteamSignIn(XPathConfig config, IWebDriver driver, out IWebElement matchedElem)
         {
             matchedElem = null;
 
             try {
-                matchedElem = driver.FindElement(By.XPath("//input[@id='imageLogin']"));
+                matchedElem = driver.FindElement(By.XPath(config.steamLoginButton));
                 return true;
             }
             catch {
@@ -40,12 +40,12 @@ namespace Darktide_Armoury_Monitor
 
         }
 
-        public static List<IWebElement> GetCharacterButtons(IWebDriver driver)
+        public static List<IWebElement> GetCharacterButtons(XPathConfig config, IWebDriver driver)
         {
             List<IWebElement> results = new List<IWebElement>();
 
             try {
-                var temp = driver.FindElements(By.XPath("//button[@class='my-button']"));
+                var temp = driver.FindElements(By.XPath(config.characterButtons));
                 foreach(IWebElement match in temp) {
                     results.Add(match);
                 }
@@ -58,17 +58,17 @@ namespace Darktide_Armoury_Monitor
 
         }
 
-        public static bool HasMatchingOffers(IWebDriver driver, out List<IWebElement> allMatches)
+        public static bool HasMatchingOffers(XPathConfig config, IWebDriver driver, out List<IWebElement> allMatches)
         {
 
             allMatches = new List<IWebElement>();
 
             try {
-                var temp = driver.FindElements(By.XPath("//div[contains(@class,'offer-match')]"));
+                var temp = driver.FindElements(By.XPath(config.matchingOfferContainers));
                 foreach (IWebElement potentialMatch in temp) {
 
                     string classes = potentialMatch.GetAttribute("class");
-                    if(!classes.Contains("item-already-owned")) {
+                    if(!classes.Contains(config.alreadyOwnedClass)) {
                         allMatches.Add(potentialMatch);
                     }
 
@@ -82,12 +82,10 @@ namespace Darktide_Armoury_Monitor
             }
         }
 
-        public static int GetMSUntilRefresh(IWebDriver driver)
+        public static int GetMSUntilRefresh(XPathConfig config, IWebDriver driver)
         {
-            ;
             try {
-                IWebElement refreshElem = driver.FindElement(By.XPath(
-                    "//div[contains(string(), 'Refresh') and contains(@class,'css-13fvtaj')]" ));
+                IWebElement refreshElem = driver.FindElement(By.XPath(config.refreshTimeDiv));
                 string text = refreshElem.Text;
 
                 int num = GeneralMethods.ParseNumber(text);

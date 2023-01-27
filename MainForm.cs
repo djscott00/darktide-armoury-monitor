@@ -15,13 +15,15 @@ namespace Darktide_Armoury_Monitor
     {
         BackgroundWorker bw;
         MainConfig config;
+        XPathConfig xpathConfig;
 
         public MainForm()
         {
             InitializeComponent();
 
             config = new MainConfig();
-            CheckForConfig();
+            xpathConfig = new XPathConfig();
+            SaveNewConfigs();
 
             bw = new BackgroundWorker();
 
@@ -34,10 +36,14 @@ namespace Darktide_Armoury_Monitor
 
         }
 
-        private void CheckForConfig()
+        private void SaveNewConfigs()
         {
             if(!File.Exists("config.xml")) {
                 config.SaveConfig();
+            }
+
+            if(!File.Exists("config_xpath.xml")) {
+                xpathConfig.SaveConfig();
             }
 
         }
@@ -53,8 +59,8 @@ namespace Darktide_Armoury_Monitor
                 string curTime = DateTime.Now.ToString("HH:mm:ss");
                 string curResult = curTime + " : number of matches: " + results.numLastHits;
 
-                if(results.errorMsg != "") {
-                    curResult += " Error: " + results.errorMsg;
+                if(results.errorLogSnag != "") {
+                    curResult += " Error: " + results.errorLogSnag;
                 }
 
                 if(results.notificationPushed) {
@@ -95,7 +101,11 @@ namespace Darktide_Armoury_Monitor
             btn_start.Enabled = true;
             btn_stop.Enabled = false;
 
-            
+            Results results = (Results)e.Result;
+
+            if(results.fatalError != "") {
+                MessageBox.Show(results.fatalError, "Error:");
+            }
 
         }
 
@@ -158,8 +168,9 @@ namespace Darktide_Armoury_Monitor
 
             if(!bw.IsBusy) {
 
-                CheckForConfig();
+                SaveNewConfigs();
                 config.LoadConfig();
+                xpathConfig.LoadConfig();
 
                 ScraperArguments args = new ScraperArguments() {
                     qcMode = chk_qcMode.Checked,
@@ -168,7 +179,8 @@ namespace Darktide_Armoury_Monitor
                     resultsProfilePath = config.resultsProfilePath,
                     logSnagAPIToken = config.logSnagAPIToken,
                     logSnagChannel = config.logSnagChannel,
-                    logSnagProject = config.logSnagProject
+                    logSnagProject = config.logSnagProject,
+                    xpathConfig = xpathConfig
                 };
 
                 string errorMsg;

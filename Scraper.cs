@@ -1,4 +1,5 @@
 ﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,7 +34,8 @@ namespace Darktide_Armoury_Monitor
         private static int numTotalChecksWithHits;
         private static int numTotalHits;
         private static int numLastHits;
-        private static string errorMsg;
+        private static string logSnagErrorMsg;
+        private static string fatalErrorMsg;
 
         private static Dictionary<string, bool> hashesForCreditHitsTable;
         private static Dictionary<string, bool> hashesForMarkHitsTable;
@@ -61,6 +63,11 @@ namespace Darktide_Armoury_Monitor
 
             scrapingThread.Join();
 
+            Results results = new Results(args, numTotalChecks, numTotalChecksWithHits, 
+                numTotalHits, numLastHits, false, "", fatalErrorMsg, logSnagErrorMsg);
+
+            e.Result = results;
+
         }
 
         private static void Initialize()
@@ -70,7 +77,8 @@ namespace Darktide_Armoury_Monitor
             numTotalChecksWithHits = 0;
             numTotalHits = 0;
             numLastHits = 0;
-            errorMsg = "";
+            logSnagErrorMsg = "";
+            fatalErrorMsg = "";
 
             scrapingWithFirefox = false;
 
@@ -102,130 +110,136 @@ namespace Darktide_Armoury_Monitor
         //***The Main repeating loop
         private static void RepeatChecks(object urlObj)
         {
-            
             string url = (string)urlObj;
-            IWebDriver driver;            
+            IWebDriver driver = null;;   
 
-            if(scrapingWithFirefox) {
-                driver = InitializeDriverFirefox(url);
-            }
-            else {
-                driver = InitializeDriverChrome(url);
-            }
-            
+            try {
+
+                if(scrapingWithFirefox) {
+                    driver = InitializeDriverFirefox(url);
+                }
+                else {
+                    driver = InitializeDriverChrome(url);
+                }            
              
-            if(driver == null) return;
-            bool notificationSent = false;
-            int msUntilNextRun = -1;
+                bool notificationSent = false;
+                int msUntilNextRun = -1;
 
-            while(continueRunning) {
-                errorMsg = "";
-                List<ItemOffer> allCreditMatches;
-                List<ItemOffer> allMarksMatches;
-                notificationSent = false;
+                while(continueRunning) {
 
-                if (CheckSiteForMatches(driver, forceRefresh: numTotalChecks>0,
-                    out numLastHits, out allCreditMatches, out allMarksMatches, out msUntilNextRun)) {
+                    logSnagErrorMsg = "";
+                    List<ItemOffer> allCreditMatches;
+                    List<ItemOffer> allMarksMatches;
+                    notificationSent = false;
 
-                    //***Now do some work to determine if we have new results or not
-                    bool newHits = false;
+                    if (CheckSiteForMatches(driver, forceRefresh: numTotalChecks>0,
+                        out numLastHits, out allCreditMatches, out allMarksMatches, out msUntilNextRun)) {
 
-                    if(allCreditMatches.Count > 0) {
-                        string creditsResultsHash = GetHashFromMatches(allCreditMatches);
-                        if(!hashesForCreditHitsTable.ContainsKey(creditsResultsHash)) {
-                            newHits = true;
+                        //***Now do some work to determine if we have new results or not
+                        bool newHits = false;
 
-                            StringBuilder sbCredits = new StringBuilder(40);
-                            for(int i = 0; i < allCreditMatches.Count; i++) {
-                                sbCredits.Append(allCreditMatches[i].name);
+                        if(allCreditMatches.Count > 0) {
+                            string creditsResultsHash = GetHashFromMatches(allCreditMatches);
+                            if(!hashesForCreditHitsTable.ContainsKey(creditsResultsHash)) {
+                                newHits = true;
 
-                                if(i < allCreditMatches.Count - 1) {
-                                    sbCredits.Append("; ");
+                                StringBuilder sbCredits = new StringBuilder(40);
+                                for(int i = 0; i < allCreditMatches.Count; i++) {
+                                    sbCredits.Append(allCreditMatches[i].name);
+
+                                    if(i < allCreditMatches.Count - 1) {
+                                        sbCredits.Append("; ");
+                                    }
                                 }
-                            }
 
-                            if(args.pushToLogSnag) {
-                                Notifier.SendNotification(args.logSnagAPIToken, args.logSnagProject,
-                                    args.logSnagChannel, "Matches Found !(Credits)", sbCredits.ToString(),
-                                    out errorMsg);
-                                notificationSent = true;
-                            }
-
-                        }
-
-                    }
-                    else {
-                        hashesForCreditHitsTable.Clear();
-                    }
-
-                    if(allMarksMatches.Count > 0) {
-                        string marksResultsHash = GetHashFromMatches(allMarksMatches);
-                        if(!hashesForMarkHitsTable.ContainsKey(marksResultsHash)) {
-                            newHits = true;
-
-                            StringBuilder sbMarks = new StringBuilder(40);
-                            for(int i = 0; i < allMarksMatches.Count; i++) {
-                                sbMarks.Append(allMarksMatches[i].name);
-
-                                if(i < allMarksMatches.Count - 1) {
-                                    sbMarks.Append("; ");
+                                if(args.pushToLogSnag) {
+                                    Notifier.SendNotification(args.logSnagAPIToken, args.logSnagProject,
+                                        args.logSnagChannel, "Matches Found! (Credits)", sbCredits.ToString(),
+                                        out logSnagErrorMsg);
+                                    notificationSent = true;
                                 }
+
                             }
 
-                            if(args.pushToLogSnag) {
-                                if (allCreditMatches.Count > 0) Thread.Sleep(5000);
-
-                                Notifier.SendNotification(args.logSnagAPIToken, args.logSnagProject,
-                                    args.logSnagChannel, "Matches Found! (Marks)", sbMarks.ToString(),
-                                    out errorMsg);
-                                notificationSent = true;
-                            }
-
-                        }
-
-                    }
-                    else {
-                        hashesForMarkHitsTable.Clear();
-                    }
-
-                    if(newHits) {
-                        if(resultsWithFirefox) {
-                            LaunchResultsFirefox(url, args.resultsProfilePath);
                         }
                         else {
-                            LaunchResultsChrome(url, args.resultsProfilePath);
+                            hashesForCreditHitsTable.Clear();
                         }
+
+                        if(allMarksMatches.Count > 0) {
+                            string marksResultsHash = GetHashFromMatches(allMarksMatches);
+                            if(!hashesForMarkHitsTable.ContainsKey(marksResultsHash)) {
+                                newHits = true;
+
+                                StringBuilder sbMarks = new StringBuilder(40);
+                                for(int i = 0; i < allMarksMatches.Count; i++) {
+                                    sbMarks.Append(allMarksMatches[i].name);
+
+                                    if(i < allMarksMatches.Count - 1) {
+                                        sbMarks.Append("; ");
+                                    }
+                                }
+
+                                if(args.pushToLogSnag) {
+                                    if (allCreditMatches.Count > 0) Thread.Sleep(5000);
+
+                                    Notifier.SendNotification(args.logSnagAPIToken, args.logSnagProject,
+                                        args.logSnagChannel, "Matches Found! (Marks)", sbMarks.ToString(),
+                                        out logSnagErrorMsg);
+                                    notificationSent = true;
+                                }
+
+                            }
+
+                        }
+                        else {
+                            hashesForMarkHitsTable.Clear();
+                        }
+
+                        if(newHits) {
+                            if(resultsWithFirefox) {
+                                LaunchResultsFirefox(url, args.resultsProfilePath);
+                            }
+                            else {
+                                LaunchResultsChrome(url, args.resultsProfilePath);
+                            }
                         
-                        numTotalChecksWithHits++;
-                    }
+                            numTotalChecksWithHits++;
+                        }
                     
 
-                }
-
-                numTotalChecks++;
-                ReportProgress(notificationSent, msUntilNextRun >= 0 ? msUntilNextRun: fallbackDelayMS);
-
-                try {
-
-                    if(msUntilNextRun >= 0) {
-                        Thread.Sleep(msUntilNextRun);
                     }
-                    else {
-                        Thread.Sleep(fallbackDelayMS);
-                    }
+
+                    numTotalChecks++;
+                    ReportProgress(notificationSent, msUntilNextRun >= 0 ? msUntilNextRun: fallbackDelayMS);
+
+                    try {
+
+                        if(msUntilNextRun >= 0) {
+                            Thread.Sleep(msUntilNextRun);
+                        }
+                        else {
+                            Thread.Sleep(fallbackDelayMS);
+                        }
 
                     
-                }
-                catch (ThreadInterruptedException ex) {
+                    }
+                    catch (ThreadInterruptedException ex) {
+
+                    }
+                    catch (ThreadAbortException ex) {
+
+                    }
 
                 }
-                catch (ThreadAbortException ex) {
-
-                }
-
-            }
             
-            Shutdown(driver);
+            }
+            catch (Exception err) {
+                fatalErrorMsg = err.Message;
+            }
+            finally {
+                Shutdown(driver);
+            }
 
         }
 
@@ -248,18 +262,19 @@ namespace Darktide_Armoury_Monitor
             msUntilNextRun = -1;
             
             try {
+
                 if(forceRefresh) {
                     driver.Navigate().Refresh();
                 }
 
                 //***Are we at initial login page?
-                if(SiteElementChecks.AtPlatformSignIn(driver, out matchedElem)) {
+                if(SiteElementChecks.AtPlatformSignIn(args.xpathConfig, driver, out matchedElem)) {
                     matchedElem.Click();
                     Thread.Sleep(3000);
                 }
 
                 //***Are we at steam account selection?
-                if(SiteElementChecks.AtSteamSignIn(driver, out matchedElem)) {
+                if(SiteElementChecks.AtSteamSignIn(args.xpathConfig, driver, out matchedElem)) {
                     matchedElem.Click();
                     Thread.Sleep(3000);
                 }
@@ -269,20 +284,20 @@ namespace Darktide_Armoury_Monitor
                 //TODO: do some safe checks to see if we're at the right section now
 
                 //***Assuming that we're now at the desired results page...
-                IWebElement storeTypeMenu = driver.FindElement(By.XPath("//select[@id='store_type_0']"));
+                IWebElement storeTypeMenu = driver.FindElement(By.XPath(args.xpathConfig.storeTypeDropdown));
                 var selectElem = new SelectElement(storeTypeMenu);
                 
                 //***Do a first run on the credit shop
-                selectElem.SelectByValue("credits");
+                selectElem.SelectByValue(args.xpathConfig.storeOptionCredits);
                 Thread.Sleep(2000);
-                List<IWebElement> characterButtons = SiteElementChecks.GetCharacterButtons(driver);
+                List<IWebElement> characterButtons = SiteElementChecks.GetCharacterButtons(args.xpathConfig, driver);
                 for(int i = 0; i < characterButtons.Count; i++) {
                     IWebElement curCharButton = characterButtons[i];
                     curCharButton.Click();
                     Thread.Sleep(1500);
 
                     List<IWebElement> curCharMatches;
-                    if(SiteElementChecks.HasMatchingOffers(driver, out curCharMatches)) {
+                    if(SiteElementChecks.HasMatchingOffers(args.xpathConfig, driver, out curCharMatches)) {
                         matchesFound = true;
                         numHits++;
                         numTotalHits++;
@@ -295,10 +310,10 @@ namespace Darktide_Armoury_Monitor
 
                 }
 
-                msUntilCreditsRefresh = SiteElementChecks.GetMSUntilRefresh(driver);
+                msUntilCreditsRefresh = SiteElementChecks.GetMSUntilRefresh(args.xpathConfig, driver);
 
                 //***Do a second run on the marks shop
-                selectElem.SelectByValue("marks");
+                selectElem.SelectByValue(args.xpathConfig.storeOptionMarks);
                 Thread.Sleep(2000);
                 for(int i = 0; i < characterButtons.Count; i++) {
                     IWebElement curCharButton = characterButtons[i];
@@ -306,7 +321,7 @@ namespace Darktide_Armoury_Monitor
                     Thread.Sleep(1500);
 
                     List<IWebElement> curCharMatches;
-                    if(SiteElementChecks.HasMatchingOffers(driver, out curCharMatches)) {
+                    if(SiteElementChecks.HasMatchingOffers(args.xpathConfig, driver, out curCharMatches)) {
                         matchesFound = true;
                         numHits++;
                         numTotalHits++;
@@ -319,7 +334,7 @@ namespace Darktide_Armoury_Monitor
 
                 }
                 
-                msUntilMarksRefresh = SiteElementChecks.GetMSUntilRefresh(driver);
+                msUntilMarksRefresh = SiteElementChecks.GetMSUntilRefresh(args.xpathConfig, driver);
 
             }
             catch (ThreadInterruptedException ex) {
@@ -343,13 +358,12 @@ namespace Darktide_Armoury_Monitor
 
         private static void ReportProgress(bool notificationPushed, int msUntilNextRun)
         {
-            ;
             DateTime dt = DateTime.Now;
             dt = dt.AddMilliseconds(msUntilNextRun);
             string nextRunTime = dt.ToString("HH:mm");
 
             Results results = new Results(args, numTotalChecks, numTotalChecksWithHits, 
-                numTotalHits, numLastHits, notificationPushed, nextRunTime, errorMsg);
+                numTotalHits, numLastHits, notificationPushed, nextRunTime, "", logSnagErrorMsg);
 
             bw.ReportProgress(0, results);
 
@@ -372,7 +386,7 @@ namespace Darktide_Armoury_Monitor
                 $" -profile \"{profileFolderPath}\"";
             process.Start();
 
-            SoundPlayer player = new SoundPlayer(Darktide_Armoury_Monitor.Properties.Resources.chimes);
+            SoundPlayer player = new SoundPlayer(Properties.Resources.chimes);
             player.Play();
 
         }
@@ -389,7 +403,7 @@ namespace Darktide_Armoury_Monitor
                 $" --profile-directory=\"{ profileName }\"";
             process.Start();
 
-            SoundPlayer player = new SoundPlayer(Darktide_Armoury_Monitor.Properties.Resources.chimes);
+            SoundPlayer player = new SoundPlayer(Properties.Resources.chimes);
             player.Play();
 
         }
@@ -397,14 +411,20 @@ namespace Darktide_Armoury_Monitor
         private static IWebDriver InitializeDriverChrome(string url)
         {
             try {
+                int lastSlash = args.scrapingProfilePath.LastIndexOf('\\');
+                string dataDir = args.scrapingProfilePath.Substring(0, lastSlash);
+                string profileName = args.scrapingProfilePath.Substring(lastSlash +1);
+                
                 IWebDriver driver = null;
                 ChromeOptions options = new ChromeOptions();
-                options.AddArgument("user-data-dir=C:\\Users\\Dan\\AppData\\Local\\Google\\Chrome\\User Data");
-                //options.AddArgument("--no-sandbox");
-                //options.AddArgument("--disable-dev-shm-usage");
+                options.AddArgument($"user-data-dir={dataDir}");
+                options.AddArgument($"profile-directory={profileName}");
 
+                if(!args.qcMode) {
+                    options.AddArgument("headless");
+                }
 
-                string path = @"G:\Programming\Web_scraping\Darktide_Armoury_Monitor\bin\Debug\chromedriver.exe";
+                string path = "chromedriver.exe";
 
                 driver = new ChromeDriver(path, options);
 
@@ -413,7 +433,7 @@ namespace Darktide_Armoury_Monitor
                 return driver;
             }
             catch (Exception err) {
-                //TODO: take action
+                //TODO: take/report action
                 ;
                 return null;
             }

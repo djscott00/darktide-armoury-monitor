@@ -76,6 +76,7 @@
     <Compile Include="Models\MainConfig.cs" />
     <Compile Include="Models\Results.cs" />
     <Compile Include="Models\ScraperArguments.cs" />
+    <Compile Include="Models\XPathConfig.cs" />
     <Compile Include="Notifier.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

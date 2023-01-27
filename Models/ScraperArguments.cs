@@ -17,6 +17,8 @@ namespace Darktide_Armoury_Monitor
         public string logSnagChannel;
         public string logSnagAPIToken;
 
+        public XPathConfig xpathConfig;
+
         public ScraperArguments()
         {
             qcMode = false;
@@ -26,6 +28,7 @@ namespace Darktide_Armoury_Monitor
             logSnagProject ="";
             logSnagChannel = "";
             logSnagAPIToken = "";
+            xpathConfig = null;
         }
 
 
