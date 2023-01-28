@@ -125,6 +125,8 @@ namespace Darktide_Armoury_Monitor
                 bool notificationSent = false;
                 int msUntilNextRun = -1;
 
+                Thread.Sleep(3000);
+
                 while(continueRunning) {
 
                     logSnagErrorMsg = "";
@@ -267,11 +269,19 @@ namespace Darktide_Armoury_Monitor
                     driver.Navigate().Refresh();
                 }
 
+                ;
+                Screenshot ss = ((ITakesScreenshot)driver).GetScreenshot();
+                ss.SaveAsFile("screenshot1.png", ScreenshotImageFormat.Png);
+                
+
                 //***Are we at initial login page?
                 if(SiteElementChecks.AtPlatformSignIn(args.xpathConfig, driver, out matchedElem)) {
                     matchedElem.Click();
                     Thread.Sleep(3000);
                 }
+
+                ss = ((ITakesScreenshot)driver).GetScreenshot();
+                ss.SaveAsFile("screenshot2.png", ScreenshotImageFormat.Png);
 
                 //***Are we at steam account selection?
                 if(SiteElementChecks.AtSteamSignIn(args.xpathConfig, driver, out matchedElem)) {
@@ -282,6 +292,8 @@ namespace Darktide_Armoury_Monitor
                 Thread.Sleep(6500); //wait for armoury extension to load/display items
 
                 //TODO: do some safe checks to see if we're at the right section now
+                ss = ((ITakesScreenshot)driver).GetScreenshot();
+                ss.SaveAsFile("screenshot3.png", ScreenshotImageFormat.Png);
 
                 //***Assuming that we're now at the desired results page...
                 IWebElement storeTypeMenu = driver.FindElement(By.XPath(args.xpathConfig.storeTypeDropdown));
@@ -422,7 +434,18 @@ namespace Darktide_Armoury_Monitor
 
                 if(!args.qcMode) {
                     options.AddArgument("headless");
+                    options.AddArgument("--window-size=1920,1080");
+                    options.AddArgument("--start-maximized");
+                    options.AddArgument("--disable-gpu");
+                    options.AddArgument("--disable-dev-shm-usage");
+                    options.AddArgument("--no-sandbox");
+                    options.AddArgument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
+
                 }
+                options.PageLoadStrategy = PageLoadStrategy.Normal;
+
+                options.AddArgument("--ignore-certificate-errors");
+                options.AddArgument("--allow-running-insecure-content");
 
                 string path = "chromedriver.exe";
 
