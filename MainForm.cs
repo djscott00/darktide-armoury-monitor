@@ -114,14 +114,20 @@ namespace Darktide_Armoury_Monitor
             bool valid = true;
             errorMsg = "";
 
-            if(args.scrapingProfilePath == "" || args.scrapingProfilePath.Contains("Replace this")) {
+            string scrapingProfilePathL = args.scrapingProfilePath.ToLower();
+
+            if(scrapingProfilePathL == "" || scrapingProfilePathL.Contains("replace this")) {
                 valid = false;
-                errorMsg += "Please provide a path for the scraping browser profile" + Environment.NewLine;
+                errorMsg += "Please edit config.xml to and provide a path for the scraping browser profile" + Environment.NewLine;
             }
-            else if(!Directory.Exists(args.scrapingProfilePath)) {
+            else if(!Directory.Exists(scrapingProfilePathL)) {
                 valid = false;
                 errorMsg += "Scraping browser profile path is not accessible at specified location:" + 
                     args.scrapingProfilePath + Environment.NewLine;
+            }
+            else if(!args.qcMode && scrapingProfilePathL.Contains("chrome")) {
+                valid = false;
+                errorMsg += "Scraping with chrome in headless mode is currently not supported. Please use a Firefox profile for scraping.";
             }
 
             if(args.resultsProfilePath == "" || args.resultsProfilePath.Contains("Replace this")) {

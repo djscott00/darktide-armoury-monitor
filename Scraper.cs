@@ -235,7 +235,20 @@ namespace Darktide_Armoury_Monitor
             
             }
             catch (Exception err) {
+
+                bool screenshotSaved = false;
+                if(driver != null) {
+                    Screenshot ss = ((ITakesScreenshot)driver).GetScreenshot();
+                    ss.SaveAsFile("screenshotException.png", ScreenshotImageFormat.Png);
+                    screenshotSaved = true;
+                }
+
                 fatalErrorMsg = err.Message;
+
+                if(screenshotSaved) {
+                    fatalErrorMsg += Environment.NewLine + "(saved view of scraper to screenshotException.png)";
+                }
+
             }
             finally {
                 Shutdown(driver);
@@ -280,8 +293,6 @@ namespace Darktide_Armoury_Monitor
                 }
 
                 Thread.Sleep(6500); //wait for armoury extension to load/display items
-
-                //TODO: do some safe checks to see if we're at the right section now
 
                 //***Assuming that we're now at the desired results page...
                 IWebElement storeTypeMenu = driver.FindElement(By.XPath(args.xpathConfig.storeTypeDropdown));
@@ -422,7 +433,16 @@ namespace Darktide_Armoury_Monitor
 
                 if(!args.qcMode) {
                     options.AddArgument("headless");
+                    options.AddArgument("--window-size=1920,1080");
+                    options.AddArgument("--start-maximized");
+                    options.AddArgument("--disable-gpu");
+                    options.AddArgument("--disable-dev-shm-usage");
+                    options.AddArgument("--no-sandbox");
                 }
+                options.AddArgument("--ignore-certificate-errors");
+                options.AddArgument("--allow-running-insecure-content");
+
+                options.PageLoadStrategy = PageLoadStrategy.Normal;
 
                 string path = "chromedriver.exe";
 
