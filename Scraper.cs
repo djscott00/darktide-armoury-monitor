@@ -37,8 +37,8 @@ namespace Darktide_Armoury_Monitor
         private static string logSnagErrorMsg;
         private static string fatalErrorMsg;
 
-        private static Dictionary<string, bool> hashesForCreditHitsTable;
-        private static Dictionary<string, bool> hashesForMarkHitsTable;
+        private static string hashLastCreditsMatch;
+        private static string hashLastMarksMatch;
 
         private static bool scrapingWithFirefox;
         private static bool resultsWithFirefox;
@@ -90,8 +90,9 @@ namespace Darktide_Armoury_Monitor
                 resultsWithFirefox = true;
             }
 
-            hashesForCreditHitsTable = new Dictionary<string, bool>();
-            hashesForMarkHitsTable = new Dictionary<string, bool>();
+            hashLastCreditsMatch = "";
+            hashLastMarksMatch = "";
+
         }
 
         public static void StopRunning()
@@ -140,19 +141,21 @@ namespace Darktide_Armoury_Monitor
 
                         if(allCreditMatches.Count > 0) {
                             string creditsResultsHash = GetHashFromMatches(allCreditMatches);
-                            if(!hashesForCreditHitsTable.ContainsKey(creditsResultsHash)) {
+
+                            if(creditsResultsHash != "" && creditsResultsHash != hashLastCreditsMatch) {
                                 newHits = true;
-
-                                StringBuilder sbCredits = new StringBuilder(40);
-                                for(int i = 0; i < allCreditMatches.Count; i++) {
-                                    sbCredits.Append(allCreditMatches[i].name);
-
-                                    if(i < allCreditMatches.Count - 1) {
-                                        sbCredits.Append("; ");
-                                    }
-                                }
+                                hashLastCreditsMatch = creditsResultsHash;
 
                                 if(args.pushToLogSnag) {
+                                    StringBuilder sbCredits = new StringBuilder(40);
+                                    for(int i = 0; i < allCreditMatches.Count; i++) {
+                                        sbCredits.Append(allCreditMatches[i].name);
+
+                                        if(i < allCreditMatches.Count - 1) {
+                                            sbCredits.Append("; ");
+                                        }
+                                    }
+
                                     Notifier.SendNotification(args.logSnagAPIToken, args.logSnagProject,
                                         args.logSnagChannel, "Matches Found! (Credits)", sbCredits.ToString(),
                                         out logSnagErrorMsg);
@@ -162,25 +165,24 @@ namespace Darktide_Armoury_Monitor
                             }
 
                         }
-                        else {
-                            hashesForCreditHitsTable.Clear();
-                        }
 
                         if(allMarksMatches.Count > 0) {
                             string marksResultsHash = GetHashFromMatches(allMarksMatches);
-                            if(!hashesForMarkHitsTable.ContainsKey(marksResultsHash)) {
+
+                            if(marksResultsHash != "" && marksResultsHash != hashLastMarksMatch) {
                                 newHits = true;
-
-                                StringBuilder sbMarks = new StringBuilder(40);
-                                for(int i = 0; i < allMarksMatches.Count; i++) {
-                                    sbMarks.Append(allMarksMatches[i].name);
-
-                                    if(i < allMarksMatches.Count - 1) {
-                                        sbMarks.Append("; ");
-                                    }
-                                }
+                                hashLastMarksMatch = marksResultsHash;
 
                                 if(args.pushToLogSnag) {
+                                    StringBuilder sbMarks = new StringBuilder(40);
+                                    for(int i = 0; i < allMarksMatches.Count; i++) {
+                                        sbMarks.Append(allMarksMatches[i].name);
+
+                                        if(i < allMarksMatches.Count - 1) {
+                                            sbMarks.Append("; ");
+                                        }
+                                    }
+
                                     if (allCreditMatches.Count > 0) Thread.Sleep(5000);
 
                                     Notifier.SendNotification(args.logSnagAPIToken, args.logSnagProject,
@@ -192,9 +194,7 @@ namespace Darktide_Armoury_Monitor
                             }
 
                         }
-                        else {
-                            hashesForMarkHitsTable.Clear();
-                        }
+
 
                         if(newHits) {
                             if(resultsWithFirefox) {
